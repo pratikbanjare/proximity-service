@@ -15,6 +15,8 @@ public class SecurityConfig {
         http
             .authorizeRequests()
                 .antMatchers("/h2-console/**").permitAll()
+                .antMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                .antMatchers("/business/**", "/nearby/**").permitAll()
                 .anyRequest().authenticated()
             .and()
             .csrf().disable()
