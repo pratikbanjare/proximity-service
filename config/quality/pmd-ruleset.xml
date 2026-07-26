@@ -6,5 +6,5 @@
     <description>Minimal baseline PMD rules for PR quality gating.</description>
 
     <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
-    <rule ref="category/java/errorprone.xml/EmptyIfStmt"/>
+    <rule ref="category/java/errorprone.xml/EmptyFinalizer"/>
 </ruleset>

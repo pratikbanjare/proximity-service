@@ -37,7 +37,6 @@ jobs:
         run: >
           mvn -B
           org.apache.maven.plugins:maven-pmd-plugin:3.23.0:check
-          -Dpmd.rulesetFiles=config/quality/pmd-ruleset.xml
 
       - name: SpotBugs quality gate
         run: >
