@@ -1,21 +1,33 @@
 package com.proximityservice.initializer;
 
+import com.proximityservice.constants.ApplicationConstants;
 import com.proximityservice.entity.Business;
 import com.proximityservice.entity.Geohash;
 import com.proximityservice.repository.BusinessRepository;
 import com.proximityservice.repository.GeohashRepository;
+import com.proximityservice.service.IGeohashGenerator;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class DataInitializer implements ApplicationRunner {
 
     private final BusinessRepository businessRepository;
     private final GeohashRepository geohashRepository;
+    private final IGeohashGenerator geohashGenerator;
 
-    public DataInitializer(BusinessRepository businessRepository, GeohashRepository geohashRepository) {
+    public DataInitializer(BusinessRepository businessRepository,
+                           GeohashRepository geohashRepository,
+                           IGeohashGenerator geohashGenerator) {
         this.businessRepository = businessRepository;
         this.geohashRepository = geohashRepository;
+        this.geohashGenerator = geohashGenerator;
     }
 
     @Override
@@ -27,42 +39,41 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void initializeDummyData() {
-        // Create dummy businesses with realistic locations (San Francisco Bay Area)
-        Business[] businesses = new Business[]{
-                new Business(null, "Starbucks Downtown", 37.7749, -122.4194),
-                new Business(null, "Pizza Palace", 37.7849, -122.4094),
-                new Business(null, "Tech Hub Cafe", 37.7649, -122.4294),
-                new Business(null, "Golden Gate Coffee", 37.8099, -122.4794),
-                new Business(null, "Silicon Valley Deli", 37.3382, -121.8863),
-                new Business(null, "Bay View Restaurant", 37.7549, -122.3994),
-                new Business(null, "Mountain View Bakery", 37.3852, -122.0849),
-                new Business(null, "Palo Alto Fitness", 37.4419, -122.1430)
-        };
+        ClassPathResource resource = new ClassPathResource(ApplicationConstants.INITIAL_DATASET_RESOURCE_PATH);
 
-        // Save businesses and create corresponding geohashes
-        for (Business business : businesses) {
-            Business savedBusiness = businessRepository.save(business);
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
 
-            // Generate a simple geohash based on latitude and longitude
-            String geohashValue = generateSimpleGeohash(business.getLatitude(), business.getLongitude());
+            String line = reader.readLine(); // skip header
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
 
-            Geohash geohash = new Geohash(null, savedBusiness.getBusinessId(), geohashValue);
-            geohashRepository.save(geohash);
+                String[] row = line.split(ApplicationConstants.CSV_DELIMITER);
+                if (row.length < 3) {
+                    throw new IllegalStateException("Invalid business CSV row: " + line);
+                }
+                Business business = Business.builder()
+                        .businessName(row[0].trim())
+                        .latitude(Double.parseDouble(row[1].trim()))
+                        .longitude(Double.parseDouble(row[2].trim()))
+                        .build();
+
+                Business savedBusiness = businessRepository.save(business);
+                String geohashValue = geohashGenerator.generate(
+                        savedBusiness.getLatitude(),
+                        savedBusiness.getLongitude()
+                );
+
+                Geohash geohash = Geohash.builder()
+                        .businessId(savedBusiness.getBusinessId())
+                        .geohashValue(geohashValue)
+                        .build();
+                geohashRepository.save(geohash);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to initialize business data from CSV", e);
         }
-
-        System.out.println("✓ Database initialized with 8 dummy businesses and geohashes");
-    }
-
-    /**
-     * Generate a simplified geohash from latitude and longitude.
-     * This is a basic implementation for demonstration purposes.
-     */
-    private String generateSimpleGeohash(Double latitude, Double longitude) {
-        // Convert lat/lon to a simple geohash-like string
-        long latBits = Double.doubleToLongBits(latitude);
-        long lonBits = Double.doubleToLongBits(longitude);
-        long combined = latBits ^ lonBits;
-        return Long.toHexString(combined).substring(0, 8);
     }
 }
-
