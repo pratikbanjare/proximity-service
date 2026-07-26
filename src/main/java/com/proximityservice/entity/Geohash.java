@@ -49,4 +49,33 @@ public class Geohash {
     public void setGeohashValue(String geohashValue) {
         this.geohashValue = geohashValue;
     }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Long geohashId;
+        private Long businessId;
+        private String geohashValue;
+
+        public Builder geohashId(Long geohashId) {
+            this.geohashId = geohashId;
+            return this;
+        }
+
+        public Builder businessId(Long businessId) {
+            this.businessId = businessId;
+            return this;
+        }
+
+        public Builder geohashValue(String geohashValue) {
+            this.geohashValue = geohashValue;
+            return this;
+        }
+
+        public Geohash build() {
+            return new Geohash(geohashId, businessId, geohashValue);
+        }
+    }
 }

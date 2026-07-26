@@ -1,7 +1,7 @@
 package com.proximityservice.controller;
 
 import com.proximityservice.dto.BusinessDTO;
-import com.proximityservice.service.BusinessService;
+import com.proximityservice.service.IBusinessService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/business")
 public class BusinessController {
 
-    private final BusinessService businessService;
+    private final IBusinessService businessService;
 
-    public BusinessController(BusinessService businessService) {
+    public BusinessController(IBusinessService businessService) {
         this.businessService = businessService;
     }
 

@@ -61,4 +61,39 @@ public class Business {
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
     }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Long businessId;
+        private String businessName;
+        private Double latitude;
+        private Double longitude;
+
+        public Builder businessId(Long businessId) {
+            this.businessId = businessId;
+            return this;
+        }
+
+        public Builder businessName(String businessName) {
+            this.businessName = businessName;
+            return this;
+        }
+
+        public Builder latitude(Double latitude) {
+            this.latitude = latitude;
+            return this;
+        }
+
+        public Builder longitude(Double longitude) {
+            this.longitude = longitude;
+            return this;
+        }
+
+        public Business build() {
+            return new Business(businessId, businessName, latitude, longitude);
+        }
+    }
 }
